@@ -1,19 +1,17 @@
 <script lang="ts" setup>
+import { login } from '@/services/supabase/supaAuth'
+import type { LoginForm } from '@/types/AuthForm'
 import { useForm } from 'vee-validate'
 import * as yup from 'yup'
+
+const router = useRouter()
 
 const schema = yup.object({
   email: yup.string().required().email().label('Email Address'),
   password: yup.string().required().min(6).label('Password'),
 })
 
-interface FormData {
-  orderNumber: number | null
-  email: string
-  password: string
-}
-
-const { defineField, handleSubmit, values, errors } = useForm<FormData>({
+const { defineField, handleSubmit, values, errors } = useForm<LoginForm>({
   validationSchema: schema,
   initialValues: {
     email: '',
@@ -24,8 +22,9 @@ const { defineField, handleSubmit, values, errors } = useForm<FormData>({
 const [email] = defineField('email')
 const [password] = defineField('password')
 
-const onSubmit = handleSubmit((values) => {
-  console.log('Submitted with', values)
+const onSubmit = handleSubmit(async (values) => {
+  const { error } = await login(values)
+  if (!error) return router.push({ name: '/' })
 })
 </script>
 

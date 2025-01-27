@@ -1,6 +1,10 @@
 <script lang="ts" setup>
+import { register } from '@/services/supabase/supaAuth'
+import type { RegisterForm } from '@/types/AuthForm'
 import { useForm } from 'vee-validate'
 import * as yup from 'yup'
+
+const router = useRouter()
 
 const schema = yup.object({
   orderNumber: yup.number().required().label('Order Number'),
@@ -14,15 +18,7 @@ const schema = yup.object({
     .label('Password confirmation'),
 })
 
-interface FormData {
-  orderNumber: number | null
-  fullName: string
-  email: string
-  password: string
-  passwordConfirm: string
-}
-
-const { defineField, handleSubmit, values, errors } = useForm<FormData>({
+const { defineField, handleSubmit, values, errors } = useForm<RegisterForm>({
   validationSchema: schema,
   initialValues: {
     orderNumber: null,
@@ -39,8 +35,10 @@ const [email] = defineField('email')
 const [password] = defineField('password')
 const [passwordConfirm] = defineField('passwordConfirm')
 
-const onSubmit = handleSubmit((values) => {
-  console.log('Submitted with', values)
+const onSubmit = handleSubmit(async (values) => {
+  console.log(values)
+  const isRegistered = await register(values)
+  if (isRegistered) router.push({ name: '/login' })
 })
 </script>
 
@@ -50,12 +48,13 @@ const onSubmit = handleSubmit((values) => {
       <h2 class="text-center text-2xl font-semibold mb-4">Sign Up</h2>
       <Form :initialValues="values" @submit="onSubmit" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
-          <InputText
+          <InputNumber
             id="orderNumber"
             v-model="orderNumber"
-            type="text"
+            :useGrouping="false"
             placeholder="Order Number"
             :class="{ 'p-invalid': errors?.orderNumber }"
+            fluid
           />
           <Message v-if="errors?.orderNumber" severity="error" size="small" variant="simple"
             >{{ errors?.orderNumber }}
@@ -133,7 +132,7 @@ const onSubmit = handleSubmit((values) => {
           </Message>
         </div>
 
-        <Button type="submit" severity="primary" label="Login" class="w-full p-button-rounded" />
+        <Button type="submit" severity="primary" label="Signup" class="w-full p-button-rounded" />
       </Form>
       <p class="text-center text-sm mt-4">
         Oh, it’s you again!
